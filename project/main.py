@@ -10,9 +10,9 @@ from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 CORS(app)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://database-user:1234@/database_scheme'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql+pymysql://user:1234@/schema'
 # app.config['SQLALCHEMY_DATABASE_URI'] = os.environ['SQLALCHEMY_DATABASE_URI']
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
 
 
@@ -20,19 +20,99 @@ class Users(db.Model):
     user_id = db.Column(db.String(36), primary_key=True, unique=True, nullable=False)
     first_name = db.Column(db.String(30), nullable=False)
     last_name = db.Column(db.String(30), nullable=False)
-    password = db.Column(db.String(50), nullable=False)
+    user_password = db.Column(db.String(50), nullable=False)
     email = db.Column(db.String(30), nullable=False)
     phone_number = db.Column(db.String(10), nullable=False)
     address = db.Column(db.String(50), nullable=False)
 
-    def __init__(self, first_name, last_name, password, email, phone_number, address):
+    def __init__(self, first_name, last_name, user_password, email, phone_number, address):
         self.user_id = str(uuid.uuid4())
         self.first_name = first_name
         self.last_name = last_name
-        self.password = password
+        self.user_password = user_password
         self.email = email
         self.phone_number = phone_number
         self.address = address
+
+
+@app.route('/user', methods=['GET'])
+def get_user():
+
+    print("LOGIN\n====================================================")
+    email = request.args.get('email')
+    password = request.args.get('password')
+
+    user = Users.query.filter_by(email=email, password=password).first()
+
+    if user is None:
+        response = {
+            "user_id": None,
+            "first_name": None,
+            "last_name": None,
+            "user_password": None,
+            "email": None,
+            "phone_number": None,
+            "address": None
+        }
+        print(response)
+
+        return json.dumps(response), 404, {'Content-Type': 'application/json'}
+
+    else:
+        response = {
+            "user_id": user.user_id,
+            "first_name": user.first_name,
+            "last_name": user.last_name,
+            "password": user.password,
+            "email": user.email,
+            "phone_number": user.phone_number,
+            "address": user.address
+        }
+
+        print(response)
+
+        return json.dumps(response), 200, {'Content-Type': 'application/json'}
+
+
+@app.route('/user', methods=['POST'])
+def insert_user():
+
+    print("REGISTER")
+
+    content = json.loads(json.loads(request.data)["body"])
+
+    first_name = content["first_name"]
+    last_name = content["last_name"]
+    user_password = content["user_password"]
+    email = content["email"]
+    phone_number = content["phone_numer"]
+    address = content["address"]
+
+    user = Users(
+        first_name=first_name,
+        last_name=last_name,
+        user_password=user_password,
+        email=email,
+        phone_number=phone_number,
+        address=address
+    )
+
+    db.session.add(user)
+    db.session.commit()
+
+    response = {
+        "user_id": user.user_id,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "password": user.password,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "address": user.address
+    }
+
+    print(response)
+
+    return json.dumps(response), 200, {'Content-Type': 'application/json'}
 
 
 @app.errorhandler(500)
