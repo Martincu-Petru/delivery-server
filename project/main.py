@@ -40,9 +40,9 @@ def get_user():
 
     print("LOGIN\n====================================================")
     email = request.args.get('email')
-    password = request.args.get('password')
+    user_password = request.args.get('user_password')
 
-    user = Users.query.filter_by(email=email, password=password).first()
+    user = Users.query.filter_by(email=email, user_password=user_password).first()
 
     if user is None:
         response = {
@@ -63,7 +63,7 @@ def get_user():
             "user_id": user.user_id,
             "first_name": user.first_name,
             "last_name": user.last_name,
-            "password": user.password,
+            "user_password": user.user_password,
             "email": user.email,
             "phone_number": user.phone_number,
             "address": user.address
@@ -77,15 +77,17 @@ def get_user():
 @app.route('/user', methods=['POST'])
 def insert_user():
 
-    print("REGISTER")
+    print("REGISTER\n====================================================")
 
-    content = json.loads(json.loads(request.data)["body"])
+    # print(str(json.loads(json.loads(request.data))))
+    content = json.loads(request.data)["body"]
+    print(content)
 
     first_name = content["first_name"]
     last_name = content["last_name"]
     user_password = content["user_password"]
     email = content["email"]
-    phone_number = content["phone_numer"]
+    phone_number = content["phone_number"]
     address = content["address"]
 
     user = Users(
@@ -104,7 +106,7 @@ def insert_user():
         "user_id": user.user_id,
         "first_name": user.first_name,
         "last_name": user.last_name,
-        "password": user.password,
+        "user_password": user.user_password,
         "email": user.email,
         "phone_number": user.phone_number,
         "address": user.address
