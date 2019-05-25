@@ -1,0 +1,12 @@
+runtime: python
+env: flex
+entrypoint: gunicorn -b :$PORT main:app
+
+runtime_config:
+  python_version: 3
+
+env_variables:
+    SQLALCHEMY_DATABASE_URI: >-
+      mysql+pymysql://database-user:1234@/database_scheme?unix_socket=/cloudsql/server-cloud-computing:us-central1:database-cloud-computing
+beta_settings:
+    cloud_sql_instances: server-cloud-computing:us-central1:database-cloud-computing
