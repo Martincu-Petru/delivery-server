@@ -46,6 +46,33 @@ class Sessions(db.Model):
         self.expiry_date = str(expiry_date)
 
 
+class Restaurants(db.Model):
+    id = db.Column(db.String(36), primary_key=True, unique=True, nullable=False)
+    restaurant_name = db.Column(db.String(30), nullable=False)
+    restaurant_image = db.Column(db.String(100), nullable=False)
+
+    def __init__(self, id, restaurant_name, restaurant_image):
+        self.id = id
+        self.restaurant_name = restaurant_name
+        self.restaurant_image = restaurant_image
+
+
+@app.route('/restaurants', methods=['GET'])
+def get_restaurants():
+    restaurants = Restaurants.query.all()
+    response = {"restaurants": []}
+
+    for restaurant in restaurants:
+        database_restaurant = {
+            "id": restaurant.id,
+            "restaurant_name": restaurant.restaurant_name,
+            "restaurant_image": restaurant.restaurant_image
+        }
+        response["restaurants"].append(database_restaurant)
+
+    return json.dumps(response), 200, {'Content-Type': 'application/json'}
+
+
 @app.route('/session', methods=['GET'])
 def get_session():
 
@@ -141,6 +168,28 @@ def get_user():
         print(response)
 
         return json.dumps(response), 200, {'Content-Type': 'application/json'}
+
+
+@app.route('/user/session', methods=['GET'])
+def get_user_session():
+    print("GET SESSION\n====================================================")
+    session_id = request.args.get('session_id')
+
+    session = Sessions.query.filter_by(session_id=session_id).first()
+    user = Users.query.filter_by(user_id=session.user_id).first()
+
+    response = {
+        "user_id": user.user_id,
+        "first_name": user.first_name,
+        "last_name": user.last_name,
+        "user_password": user.user_password,
+        "email": user.email,
+        "phone_number": user.phone_number,
+        "address": user.address
+    }
+    print(response)
+
+    return json.dumps(response), 200, {'Content-Type': 'application/json'}
 
 
 @app.route('/user', methods=['POST'])
