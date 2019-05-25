@@ -35,6 +35,75 @@ class Users(db.Model):
         self.address = address
 
 
+class Sessions(db.Model):
+    session_id = db.Column(db.String(36), primary_key=True, unique=True, nullable=False)
+    user_id = db.Column(db.String(36), nullable=False)
+    expiry_date = db.Column(db.DATETIME, db.ForeignKey('users.user_id'))
+
+    def __init__(self, user_id, expiry_date):
+        self.session_id = str(uuid.uuid4())
+        self.user_id = user_id
+        self.expiry_date = str(expiry_date)
+
+
+@app.route('/session', methods=['GET'])
+def get_session():
+
+    print("GET SESSION\n====================================================")
+
+    session_id = request.args.get("session_id")
+
+    session = Sessions.query.filter_by(session_id=session_id).first()
+
+    if session is None:
+        response = {
+            "session_id": None,
+            "user_id": None,
+            "expiry_date": None
+        }
+
+        print(response)
+
+        return json.dumps(response), 404, {'Content-Type': 'application/json'}
+    else:
+        response = {
+            "session_id": session.session_id,
+            "user_id": session.user_id,
+            "expiry_date": str(session.expiry_date)
+        }
+
+        print(response)
+
+        return json.dumps(response), 200, {'Content-Type': 'application/json'}
+
+
+@app.route('/session', methods=['POST'])
+def insert_session():
+
+    print("POST SESSION\n====================================================")
+
+    content = json.loads(json.loads(request.data)["body"])
+
+    user_id = content["user_id"]
+    expiry_date = content["expiry_date"]
+
+    session = Sessions(
+        user_id=user_id,
+        expiry_date=expiry_date
+    )
+
+    db.session.add(session)
+    db.session.commit()
+
+    response = {
+        "session_id": session.session_id,
+        "user_id": session.user_id,
+        "expiry_date": str(session.expiry_date)
+    }
+
+    return json.dumps(response), 200, {'Content-Type': 'application/json'}
+
+
 @app.route('/user', methods=['GET'])
 def get_user():
 
@@ -80,8 +149,8 @@ def insert_user():
     print("REGISTER\n====================================================")
 
     # print(str(json.loads(json.loads(request.data))))
-    content = json.loads(request.data)["body"]
-    print(content)
+    content = json.loads(json.loads(request.data)["body"])
+    print("JSON: " + str(content))
 
     first_name = content["first_name"]
     last_name = content["last_name"]
