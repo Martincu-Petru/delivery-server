@@ -7,6 +7,6 @@ runtime_config:
 
 env_variables:
     SQLALCHEMY_DATABASE_URI: >-
-      mysql+pymysql://database-user:1234@/database_scheme?unix_socket=/cloudsql/server-cloud-computing:us-central1:database-cloud-computing
+      mysql+pymysql://user:1234@/schema?unix_socket=/cloudsql/delivery-cc-server:europe-west1:database
 beta_settings:
-    cloud_sql_instances: server-cloud-computing:us-central1:database-cloud-computing
+    cloud_sql_instances: delivery-cc-server:europe-west1:database
